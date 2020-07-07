@@ -1,0 +1,156 @@
+'On Error GoTo erro
+
+   'Dim Caminho As String            'Guarda o caminho onde os anexo estão localizados
+   Dim Ext As String                'Guarda a extensão do arquivo que devem ser abertos
+   Dim nome As String               'Guarda o nome do arquivo a ser aberto
+   Dim Pasta As Folder              'Cria o objeto pasta para dar um loop no conteudo
+   Dim fso As New FileSystemObject  'Variavel objeto que permite manipular diretorios
+   Dim wbkConsolidar As String
+
+   Application.DisplayAlerts = False 'Retira mensagem de aviso
+   
+   wbkConsolidar = ActiveWindow.Caption
+    
+'Armazena o caminho e a Extenção dos arquivos que serão utilizados
+   'Caminho = "C:\..............."
+   Ext = "*.xls"
+      
+'Pega o nome do arquivo a ser utilizado
+   nome = Dir(Caminho_Anexo & Ext, vbNormal)
+
+'Instaciação dos objetos na memória
+   Set fso = CreateObject("Scripting.FileSystemObject") 'Cria o objeto fso para manipular pastas e arquivos
+   Set Pasta = fso.GetFolder(Caminho_Anexo)                   'Aponta para a pasta onde se localiza os arquivos
+   Set Arq = Pasta.Files                                'Aponta para todos os arquivos da pasta
+        
+        
+'Titulos da planilha
+   Range("F1") = "X1"
+   Range("G1") = "X2"
+   Range("H1") = "X3"
+   Range("K1") = "X4"
+   Range("N1") = "X5"
+   Range("O1") = "X6"
+   Range("S1") = "X7"
+   Range("T1") = "X8"
+   Range("U1") = "X9"
+   Range("V1") = "X10"
+   Range("W1") = "X11"
+   
+
+   For Each arquivo In Arq 'Varre a coleção de arquivos da pasta
+ 
+       Workbooks.Open (Caminho_Anexo & arquivo.Name)          'Abre o arquivo
+       Worksheets(2).Select                             'Seleciona a segunda aba da planilha
+       Range("B5:X5").Select                            'Seleciona o titulo
+       Range(Selection, Selection.End(xlDown)).Select   'Seleciona o restante da tabela
+       Selection.Copy                                   'Copia o conteudo selecionado
+        
+       Workbooks.Item(wbkConsolidar).Activate                       'Seleciona o Workbbok que consolida
+       Range("A2").Select                               'Posiciona o cursor na célula A2
+               
+       'Verifica qual célula abaixo esta vazio antes de colar os dados
+       Do
+          If IsEmpty(ActiveCell) = False Then
+             ActiveCell.Offset(1, 0).Select
+          End If
+    
+       Loop Until IsEmpty(ActiveCell) = True
+        
+       
+       ActiveSheet.Paste                    'Cola os dados que foram copiados do outro Workbook
+       Workbooks(arquivo.Name).Close        'Fecha o Workbook pois os seus dados já foram copiados
+
+    Next
+
+
+    Workbooks.Item(wbkConsolidar).Activate 'Ativa o workbook do consolidar
+
+'Exclui algumas colunas que não estão sendo utilizadas pela planilha
+    Range("A:A,C:E,I:J,L:M,Q:R").Select
+    Selection.Delete Shift:=xlToLeft
+    
+    
+    Range("A1:M1").Select                           'Seleciona o titulo
+    Range(Selection, Selection.End(xlDown)).Select  'Seleciona o resto da tabela
+    Selection.HorizontalAlignment = xlLeft          'Alinha a esquerda
+    
+    Call Borda("Ligar")                             'Coloca bordas nas células selecionadas
+
+'Formatação do titulo
+    Range("A1:M1").Select                   'Seleciona o titulo
+    
+    With Selection
+        .RowHeight = 48                     'Font
+        .HorizontalAlignment = xlCenter     'Alinhamento horizontal
+        .VerticalAlignment = xlCenter       'Alinhamento vertical
+        .Font.Bold = True                   'Negrito
+    End With
+    
+    Range("A1") = "Cod Agência"
+
+    Cells.EntireColumn.AutoFit              'Auto ajuste das colunas
+    
+    Range("A4").Select
+
+   
+    Cells.Select    'Seleciona toda a planilha
+    Selection.Copy  'Copia o conteudo de toda a planilha
+    
+    Application.Workbooks.Add 'Adicona uma nova pasta de trablaho do excel para copiar os dados para ela
+   
+   ActiveSheet.Paste           'Cola os dados copiados para esta nova pasta de trabalho
+   
+    Sheets(Array("Plan2", "Plan3")).Select      'Seleciona as planilhas 2 e 3
+    ActiveWindow.SelectedSheets.Delete          'Exclui as duas planilhas selecionadas
+   
+    Sheets("Plan1").Name = "Posição - Agências" 'Muda o nome da planilha 1
+    Range("A1").Select
+   ActiveWindow.DisplayGridlines = False 'Retira as grades da planilha
+   
+   'Novo 21/09/2012: Considera 4 ultimos digitos do campo agência
+   Linha = 2
+   
+   While Cells(Linha, 1) <> ""
+        Cells(Linha, 1) = Right(Cells(Linha, 1), 4)
+        Linha = Linha + 1
+   Wend
+   
+   Columns("A:A").Select
+   Selection.NumberFormat = "@"
+   
+   Cells.Select
+   With Selection
+        .HorizontalAlignment = xlCenter
+   End With
+   
+   With Selection.Interior
+        .Pattern = xlNone
+        .TintAndShade = 0
+        .PatternTintAndShade = 0
+    End With
+   
+   
+   Range("A1").Select
+   
+   'Salva o arquivo final
+   ActiveWorkbook.SaveAs Caminho_Destino & "Nome_Arquivo_" & Format(Date, "ddmm") '& ".xls"
+    
+   'Fecha o arquivo final
+   'Workbooks("Nome_Arquivo_" & Format(Date, "ddmm") & ".xls").Close
+      
+   Workbooks.Item(wbkConsolidar).Activate
+   
+       
+   MsgBox "Processo finalizado.", vbInformation, "Conluído!!!"
+   
+   
+   Application.DisplayAlerts = True
+   Cells.Select
+   Selection.Delete Shift:=xlUp
+   Range("A1").Select
+   
+   Exit Sub
+   
+erro:
+    MsgBox "Erro inesperado, entre em contato com o Administrador do sistema." & Chr(13) & Chr(13) & "Descrição: " & Err.Description & Chr(13) & "Número: " & Err.Number, vbCritical, "Erro"
