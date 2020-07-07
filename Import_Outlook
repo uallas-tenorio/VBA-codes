@@ -1,0 +1,152 @@
+    Dim OutApp As Outlook.Application   'Outlook
+    Dim Inbox As Outlook.MAPIFolder     'Caixa de entrada
+    Dim LigacoesItems As Outlook.Items  'conjunto de e-mails de uma determinada pasta
+    Dim PesquisaSac_Box As MAPIFolder   'Pasta de Pesquisas do outlook
+    Dim i As Integer                    'Variavel de controle de E-mail
+    Dim a As Integer                    'Variavel de controle de Anexo
+    Dim Pos_Ext As Integer              'Posição da String
+    Dim Ext As String                   'Guarda a Extenção do arqyuivo
+    Dim Data As String                  'Para guardar a data sem as barras "/"
+    
+    Dim NomePSalvarArquivo As String    'Nome para salvar o arquivo (anexo)
+    
+    Dim Caminho As String               'Guarda o nome do caminho
+    Dim NomeArq     As String           'Nome do arquivo que esta no direorio
+    Dim Arquivo As String               'Guarda o ultimo arquivo do detetorio
+    Dim SeqIni As Integer               'Guarda o ultimo numera do arquivo que esta no direotio
+    Dim SeqFim As Integer
+    Dim cont As Integer
+    
+    Dim QtdTotal As Integer             'Guarda a quantidade total de e-mail
+    Dim QtdExtraidos As Integer         'Guarda a quantidade de e-mail extraidos com sucesso
+    
+    Set OutApp = CreateObject("Outlook.Application") 'Cria uma instancia do outlook
+    Set Inbox = OutApp.GetNamespace("Mapi").GetDefaultFolder(olFolderInbox) 'Define o Inbox como caixa principal
+    Set PesquisaSac_Box = Inbox.Folders("Pasta_Especifica") 'Aponta para a pasta especifica que esta dentro da principal
+    
+    Set LigacoesItems = PesquisaSac_Box.Items 'Aponta para o conjunto de e-mail da caixa de Registro de ligação no outlook
+    
+    'Sheets("SLAs").Select 'seleciona plan com SLAs
+    
+i = 1 'Variavel para controle de e-mail
+a = 1 'Variavel para controle de anexos
+SeqIni = 0
+    If LigacoesItems.Count <> 0 Then                          'Verifica se tem E-mail na pasta Registro de Ligação do Outlook
+       QtdTotal = LigacoesItems.Count
+       While i <= LigacoesItems.Count                         'Conta a quantidade de e-mails 'Faça enquanto não for o final dos e-mails
+         If LigacoesItems.Item(i).UnRead = True And Left(LigacoesItems.Item(i).Subject, 4) = "FAMA" Then         'Só verifica os e-mail que não foram lidos ainda e se o assunto for FAMA
+           While a <= LigacoesItems.Item(i).Attachments.Count 'Faça enquanto não ler todos os anexos
+               Ext = Right(LigacoesItems.Item(i).Attachments.Item(a).Filename, 4)
+               
+               If Left(Ext, 2) = ".x" Then
+                    Ext = "xls"
+               ElseIf Left(Ext, 2) = "xl" Then
+                    Ext = Mid(Ext, 1, 4)
+               Else
+                    Ext = "des"
+               End If
+               
+               If Ext <> "des" Then  'Verifica se a extenção é xls
+                  
+                  'Data = Mid(LigacoesItems.Item(i).ReceivedTime, 1, 10) 'pega a data do e-mail
+                  'Data = Mid(Data, 1, 2) & Mid(Data, 4, 2) & Mid(Data, 7, 4) 'Retira as barras do e-mail
+                  'Call FolderData
+                  
+                 Data = Format(LigacoesItems.Item(i).ReceivedTime, "yymmddhhmmss")
+                 Chave = Data  'chave do registro
+                                 
+                 Caminho = "C:\Diretorio_para_salvar_os_dados" 'Atribui o caminho com o diretorio da data
+                 NomeArq = Dir(Caminho & "*.*") 'Seleciona todos os arquvos da pasta e atribui a variavel
+                 Arquivo = NomeArq 'atribui o nome do arquivo
+                 QtdExtraidos = QtdExtraidos + 1
+            
+     cont = 0
+                 Do While NomeArq <> "" 'Verifica se chegou ao fim do arquivo do diretorio
+                     If Arquivo <> "" Then
+                         Arquivo = NomeArq
+                     End If
+                     NomeArq = Dir
+                     cont = cont + 1
+                 Loop
+                 
+                 NomePSalvarArquivo = "C:\Diretorio_para_salvar_os_dados\" & EmailsItems.Item(i).Sender & "_" & Data & "." & Ext 'Nome do arquivo com a extensão
+
+                cont = cont + 1
+                LigacoesItems.Item(i).Attachments.Item(a).SaveAsFile NomePSalvarArquivo  'salva arquivo
+               End If
+               
+              a = a + 1
+            Wend
+        End If
+        
+        ' ------- Abre Arquivo para verificar se é um anexo válido --------
+        
+        
+        Dim objExcel As Excel.Application 'Variavel Objeto do Excel
+        Dim wbkExcel As Excel.Workbook 'Variavel objeto do Workbook
+    
+        Set objExcel = CreateObject("Excel.Application") 'Cria uma instancia do Excel
+        
+        'Set wbkExcel = objExcel.Workbooks.Open(NomePSalvarArquivo) 'Abre workbook de trabalho
+        Set wbkExcel = objExcel.Workbooks.Open("C:\Diretorio_para_salvar_os_dados\Briefing.xls") 'Abre workbook de trabalho
+        
+        
+        objExcel.Visible = True
+        
+        If objExcel.Range("C8") = "Tipo de Solicitação" And objExcel.Range("C09") <> "" And objExcel.Range("F09") <> "" And objExcel.Range("I09") <> "" And objExcel.Range("K09") <> "" And objExcel.Range("C12") <> "" Then  'verifica trata-se do formulário padrão a ser importado e se os campos básicos estão preenchidos
+            
+            TituloColuna1 = objExcel.Range("C09")
+            TituloColuna2 = objExcel.Range("F09")
+            TituloColuna3 = objExcel.Range("I09")
+            TituloColuna4 = objExcel.Range("K09")
+            TituloColuna5 = objExcel.Range("C12")
+            TituloColuna6 = objExcel.Range("I12")
+            TituloColuna7 = objExcel.Range("G17")
+            TituloColuna8 = objExcel.Range("D23")
+            
+            'campos opcionais
+            TituloColuna9 = IIf(objExcel.Range("F12") <> "", True, False)   
+            TituloColuna10 = IIf(objExcel.Range("C17") <> "", True, False)
+            
+            Sheets("SLAs").Select
+            
+            Range("I1") = TipoSolicitacao
+            
+            Prazo = Range("J1")
+            
+            '######################################
+            
+            'Call RegistraAccess
+        
+            LigacoesItems.Item(i).UnRead = False  'marca e-mail como lido
+            
+            objExcel.Quit 'fecha arquivo
+            
+        Else
+        
+            objExcel.Quit 'fecha arquivo
+            Kill (NomePSalvarArquivo)   'deleta o arquivo pois não se trata de um anexo válido
+            
+        End If
+        
+        ' -------------
+        
+        
+        
+        
+        
+        Set objExcel = Nothing
+        
+'-----Zera as variaveis para o proximo e-mail
+       a = 1
+       i = i + 1
+       SeqIni = 0
+       SeqFim = 0
+       Wend
+       
+       'MsgBox "Total de e-mails lidos: " & QtdTotal & Chr(13) & "Arquivos de Solicitações extraidos com sucesso: " & QtdExtraidos, vbInformation, "Informação"
+           
+     Else
+       MsgBox "Não existem E-mail na caixa do outlook para serem baixados", vbExclamation, "Atenção"
+       Exit Sub
+    End If
