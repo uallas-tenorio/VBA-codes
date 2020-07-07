@@ -5,4 +5,5 @@ Some codes to be used in automation routines (Excel/Access)
 - Import_Outlook: import specific e-mails from Outlook inbox
 - Connect-Access-Database: Connect and transact in Access database
 - Functions-Hostname&User: Functions to identify hostname and current username
-- RPA-Selenium-Methods: Methods in VBA class for manipulation objects using selenium web driver
+- RPA-Selenium-Methods: Methods in VBA class for manipulating objects using selenium web driver
+- RPA-Selenium-MainMethods: Main methods for manipulating objects using selenium web driver
