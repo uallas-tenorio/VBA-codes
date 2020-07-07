@@ -1,0 +1,20 @@
+'Declarações para recuperar o nome do usuário e nome do compuador
+Declare Function GetUserName Lib "advapi32.dll" Alias "GetUserNameA" (ByVal IpBuffer As String, NSize As Long) As Long
+Declare Function GetComputerName Lib "kernel32" Alias "GetComputerNameA" (ByVal lpBuffer As String, NSize As Long) As Long
+
+'Função para identificar o nome de usuario
+Function CompName()
+Dim CompName1 As String * 255
+Dim CompName2 As String
+    DoCmd.SetWarnings False
+    CompName2 = GetComputerName(CompName1, 255)
+    CompName = VBA.Left(CompName1, InStr(CompName1, VBA.Chr(0)) - 1)
+End Function
+'função para identificar o nome do computador
+Function UserName()
+Dim ipbuff As String * 25
+Dim ret As Long
+    DoCmd.SetWarnings False
+    ret = GetUserName(ipbuff, 25)
+    UserName = VBA.Left(ipbuff, InStr(ipbuff, VBA.Chr(0)) - 1)
+End Function
