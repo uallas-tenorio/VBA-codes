@@ -1,0 +1,101 @@
+Public WrkJet As Workspace
+Public caminhoBD As String   'caminho do banco na rede
+Public dbBaseUnica As Database As Database, dbBaseTemp As Database      'base da rede e base local
+Public rstBaseUnica As Recordset, rstBasetemp As Recordset  'recordset na rede e local
+
+'#Conecta a um banco de dados Access externo
+Sub ConectaBD_Externo()    
+On Error GoTo erro
+
+'Set WrkJet = DBEngine.CreateWorkspace("", "user", "password", dbUseJet)    'Conexão com o uso de mdw
+Set WrkJet = DBEngine.Workspaces(0)                                         ' Conexão sem o uso de mdw
+
+    Set dbBaseUnica = WrkJet.OpenDatabase("\\Caminho_da_Base\Base.mdb")
+
+
+Exit Sub
+erro:
+    MsgBox Err.Description & vbCrLf & vbCrLf & "Por favor entre em contato com o administrador do sistema e o informe sobre o erro ocorrido", vbCritical, "Erro no Sistema"
+End Sub
+
+'#desconecta de um banco de dados Access externo
+Sub FechaBD_Externo()  
+On Error GoTo erro
+    dbBaseUnica.Close
+    WrkJet.Close
+    Set dbBaseUnica = Nothing
+    Set WrkJet = Nothing
+Exit Sub
+erro:
+    Resume Next
+End Sub
+
+'#Conecta em um banco de dados local
+Sub conectaBD_Local()  
+
+    Set dbBaseTemp = CurrentDb()
+    
+End Sub
+
+'limpa variavel de acesso ao banco de dados local
+Sub FechaBD_Local()     
+On Error GoTo erro
+    'dbBaseTemp.Close
+    Set dbBaseTemp = Nothing
+Exit Sub
+erro:
+    MsgBox Err.Description & vbCrLf & vbCrLf & "Por favor entre em contato com o administrador do sistema e o informe sobre o erro ocorrido", vbCritical, "Erro no Sistema"
+End Sub
+
+'#Registra em banco de dados Access Externo
+
+Sub RegistraAccess()
+On Error GoTo erro
+
+
+    ConectaBD_Externo
+    Set rstBaseUnica = dbBaseUnica.OpenRecordset("SELECT * FROM Tbl_Access")
+    rstBaseUnica.AddNew
+    rstBaseUnica("CHAVE") = Chave
+    rstBaseUnica("DATA_ENTRADA") = formata(Date, "dd/mm/yyyy")
+    rstBaseUnica("SOLICITANTE") = Demandante
+    rstBaseUnica("AREA") = AreaSolicitante
+    rstBaseUnica("SITE") = Site
+    rstBaseUnica("PRODUTO") = Produto_Servico
+    rstBaseUnica("ORIENTACAO") = Orientacao
+    rstBaseUnica("CAMINHO") = Caminho
+    rstBaseUnica("MOTIVO") = Motivo_Alteracao
+    rstBaseUnica("SUGESTAO") = Sugestao_De_Para
+    'rstBaseUnica ("RESPONSAVEL_PROC")
+    rrstbaseunica("SLA_PROC") = PrazoProcessos
+    rstBaseUnica("STATUS_PROC") = 1
+    rstBaseUnica ("RESPONSAVEL_COMU")
+    rstBaseUnica("STATUS_COMU") = 0
+    rstBaseUnica("DATA_INC") = Format(Date, "dd/mm/yyyy")
+    rstBaseUnica("HORA_INC") = Format(Date, "dd/mm/yyyy")
+    rstBaseUnica.Update
+    rstBaseUnica.Close
+    Set rstBasetemp = Nothing
+    FechaBD_Externo
+    
+End Sub
+
+'Consulta registro especifico na base externa
+Sub ConsultaAccess()
+On Error GoTo erro
+
+
+    ConectaBD_Externo
+    Set rstBaseUnica = dbBaseUnica.OpenRecordset("SELECT * FROM Tbl_Access WHERE ID = 01")
+
+    Chave = rstBaseUnica("CHAVE")
+    Demandante = rstBaseUnica("SOLICITANTE")
+    AreaSolicitante = rstBaseUnica("AREA") 
+    'Demais campos....
+    
+    rstBaseUnica.Close
+    Set rstBasetemp = Nothing
+    FechaBD_Externo
+    
+End Sub
+
