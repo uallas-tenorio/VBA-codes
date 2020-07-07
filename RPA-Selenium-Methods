@@ -1,0 +1,118 @@
+Private objIE        As InternetExplorer
+Private pagina       As MSHTML.HTMLDocument
+Private CaixaTexto   As MSHTML.HTMLInputTextElement
+
+Private texto        As MSHTML.IHTMLElementCollection
+
+Private form         As MSHTML.HTMLFormElement
+Private Botao        As MSHTML.HTMLButtonElement
+
+'Private Tabela       As MSHTML.HTMLTable
+
+Private Table        As MSHTML.HTMLTable
+
+' ================ MÉTODOS ================
+Sub AbrirSite(url As String)
+   Set objIE = New InternetExplorer
+   objIE.Visible = True
+   objIE.Navigate url
+
+   Call AguardarElemento
+   Set pagina = objIE.document
+   
+   Set pagina = GetFrameDocument(pagina, "TargetContent")
+   
+   
+End Sub
+
+
+Public Function GetFrameDocument(document As Object, frameName As String) As Object
+
+Dim i As Long
+Dim frame As Object
+Dim pBrowser As SHDocVw.IWebBrowser
+
+  For i = 0 To document.all.Length - 1
+    If TypeName(document.all(i)) = "HTMLFrameElement" Then 'Verifca se é um frame de elementos
+        Set frame = document.all(i)
+        
+        If frame.Name = frameName Then 'Verica se é o frame que estamos procurado
+            Set pBrowser = frame
+            Set GetFrameDocument = pBrowser.document 'Caso seja devolver o frame em questão
+            Exit For
+        End If
+     End If
+  Next
+
+End Function
+
+
+Sub InserirValor(IDCampo As String, value As String)
+    Dim campo As IHTMLInputElement
+   
+    Call AguardarElemento
+   
+    Set campo = pagina.getElementById(IDCampo)
+    campo.value = value
+        
+    Set campo = Nothing
+
+End Sub
+
+Sub ClicarLink(IdLink As String)
+    Dim Link As HTMLLinkElement
+    
+   Call AguardarElemento
+    Set Link = pagina.getElementById(IdLink)
+        
+    Link.Click
+    Set Link = Nothing
+
+End Sub
+
+
+Sub ClicarBotao(IdBotao As String)
+    Dim Botao As IHTMLInputButtonElement
+    
+   Call AguardarElemento
+    Set Botao = pagina.getElementById(IdBotao)
+        
+    Botao.Click
+    Set Botao = Nothing
+
+End Sub
+
+
+
+Sub Tabela(XPathElemento As String)
+    Dim Tabela As IHTMLTable
+    Dim t      As IHTMLTable
+    Dim Linha  As HTMLTableRow
+    
+    Call AguardarElemento
+    Set Tabela = pagina.getElementById(XPathElemento)
+    Set Tabela = Tabela.getElementsByTagName("table")(1)
+        
+    Set Linha = Tabela.Rows(3)
+    
+    
+    Botao.Click
+    Set Botao = Nothing
+
+End Sub
+
+Sub LimparCampo(IDCampo As String)
+   Dim campo As IHTMLInputElement
+   
+   Call AguardarElemento
+   Set campo = pagina.getElementById(IDCampo)
+   campo.value = ""
+
+   Set campo = Nothing
+End Sub
+
+
+Private Sub AguardarElemento()
+   While objIE.Busy
+   Wend
+End Sub
