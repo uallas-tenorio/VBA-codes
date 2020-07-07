@@ -1,0 +1,191 @@
+Dim driver As New WebDriver
+
+Private Tabela As TableElement
+Private t As Table
+Private obj As Object
+
+Private cNavegador         As String
+
+
+
+Enum Metodo
+   Teclado = 1
+   javascript = 2
+End Enum
+
+
+' ================ PROPRIEDADES ================
+Public Property Get Navegador() As String
+    Navegador = cNavegador
+End Property
+
+Public Property Let Navegador(ByVal Browser As String)
+    cNavegador = Browser
+End Property
+
+
+
+
+' ================ MÉTODOS ================
+Sub AbrirSite(url As String)
+    driver.Start cNavegador
+    driver.Get url, , True
+    driver.SwitchToFrame ("TargetContent")
+    driver.Window.Maximize
+    'driver.Close
+End Sub
+
+Sub InserirValor(IDCampo As String, value As String, Optional MetodoEnvio As Metodo)
+   Call AguardarElemento(IDCampo)
+   Dim campo As WebElement
+         
+    Select Case MetodoEnvio
+      Case 1
+         driver.FindElementById(IDCampo).SendKeys value
+      Case 2, 0
+         driver.FindElementById(IDCampo).ExecuteScript "this.value=arguments[0];", value
+    End Select
+    
+    
+
+End Sub
+
+
+Sub ClicarBotao(IdBotao As String)
+    Call AguardarElemento(IdBotao)
+    driver.ExecuteScript ("javascript:submitAction_win0(document.win0, '" & IdBotao & "');")
+End Sub
+
+
+Sub ClicarElemento(IdElemento As String)
+   Call AguardarElemento(IdElemento)
+   driver.FindElementById(IdElemento).Click
+End Sub
+
+
+
+Sub LimparCampo(IDCampo As String)
+   Call AguardarElemento(IDCampo)
+   driver.FindElementById(IDCampo).Clear
+End Sub
+
+
+
+Function ValorComboExiste(IDCampo As String, value As String) As Boolean
+   'Verifica se o valor existe no combo
+   'Debug.Print driver.FindElementById(IDCampo).Text
+   If InStr(1, UCase(driver.FindElementById(IDCampo).Text), value) > 0 Then
+      ValorComboExiste = True
+   Else
+      ValorComboExiste = False
+   End If
+End Function
+
+
+
+Function ElementoExiste(IdElemento As String) As Boolean
+On Error GoTo erro:
+   Dim elemento As WebElement
+   
+   ElementoExiste = True
+   
+   Set elemento = driver.FindElementById(IdElemento)
+         
+         
+Exit Function
+erro: 'Verfica se é erro de objeto não localizada, caso positivo, retorna para a função falso
+If Err.Number = 7 Then
+   ElementoExiste = False
+End If
+
+End Function
+
+
+
+Function LocalizarQtdLinhasTabela(XPathElemento As String) As Integer
+   Dim Tabela As WebElement
+   Dim Linha As WebElements
+   
+   Set Tabela = driver.FindElementByXPath(XPathElemento)
+   Set Linha = Tabela.FindElementsByTag("tr") 'Array de Linha da tabela
+   
+   LocalizarQtdLinhasTabela = Linha.Count - 1
+   
+   'tabela.AsTable.ToExcel
+   'tabela.AsTable.Data
+   
+End Function
+
+
+Function ItemComboSelecionado(IdElementoCombo As String) As String
+   Dim Combo                As WebElement
+   Dim ComboLista           As SelectElement
+   
+     
+   Set Combo = driver.FindElementById(IdElementoCombo)
+   Set ComboLista = Combo.AsSelect
+   
+   Debug.Print Time
+   ItemComboSelecionado = ComboLista.SelectedOption.Text
+   Debug.Print Time
+End Function
+
+
+Function RecuperaNomePosicaoCanalOrigem(IdElementoCombo As String) As String
+   Dim Combo                As WebElement
+   Dim ComboSelecionado     As WebElement
+   Dim ComboLista           As SelectElement
+   Dim t As Variant
+     
+     
+    t = driver.ExecuteAsyncScript("document.getElementById('ABN_SR_PAR_SLA_RC_SOURCE$0').selectedIndex;")
+
+   Set Combo = driver.FindElementById(IdElementoCombo)
+   Set ComboLista = Combo.AsSelect
+   
+   'Debug.Print Time
+   
+'   Debug.Print Time
+'   For i = 1 To 32
+'      If ComboLista.Options(i).IsSelected Then
+'         ComboLista.Options(i).Text
+'         Debug.Print Time
+'         Stop
+'      End If
+'   Next
+   
+   
+   Debug.Print Time
+      Debug.Print ComboLista.SelectedOption.Text
+    Debug.Print Time
+    
+   RecuperaNomePosicaoCanalOrigem = ComboLista.SelectedOption.Text
+  
+End Function
+
+
+
+Sub Aguardar(segundos)
+    driver.Wait segundos * 1000
+End Sub
+
+
+
+Private Sub AguardarElemento(IdElemento As String)
+   Dim a As WebElement
+   Set a = driver.FindElementById(IdElemento).WaitDisplayed
+   Set a = driver.FindElementById(IdElemento).WaitEnabled
+   
+'   Debug.Print IdElemento & " - " & a.IsDisplayed
+'   Debug.Print IdElemento & " - " & a.IsPresent
+   
+   'driver.FindElementById(IDElemento).WaitEnabled
+End Sub
+
+Private Sub AguardarBotao(IdBotao As String)
+   'Call driver.FindElementById(IdBotao).WaitForScript(("javascript:submitAction_win0(document.win0, '" & IdBotao & "');"))
+End Sub
+
+Sub FecharSite()
+    driver.Quit
+End Sub
